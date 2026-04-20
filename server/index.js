@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import Database from 'better-sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -63,7 +68,15 @@ app.delete('/api/store/:key', (req, res) => {
   }
 });
 
-const PORT = 3001;
+// Serve static frontend files from 'dist' directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Catch-all route to serve the React index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend SQLite server running on http://0.0.0.0:${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
