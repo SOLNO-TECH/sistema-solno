@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Users, 
-  UserCircle, 
-  FileText, 
-  CreditCard, 
-  Briefcase, 
-  Settings, 
+  LayoutDashboard,
+  Users,
+  UserCircle,
+  FileText,
+  CreditCard,
+  Briefcase,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   ChevronDown,
   FolderGit2,
-  Ticket
+  Ticket,
+  ClipboardList
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Button } from './ui/Button';
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Usuarios', href: '/usuarios', icon: UserCircle },
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Cotizaciones', href: '/cotizaciones', icon: FileText },
+  { name: 'Propuestas', href: '/propuestas', icon: ClipboardList },
   { name: 'Gastos', href: '/gastos', icon: CreditCard },
   { name: 'Proveedores', href: '/proveedores', icon: Briefcase },
   { name: 'Proyectos', href: '/proyectos', icon: FolderGit2 },
