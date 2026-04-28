@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { SlidePanel } from '../components/ui/SlidePanel';
 import { getStorageData, setStorageData } from '../lib/utils';
-import { Plus, Trash2, ClipboardList, Download, Printer, X, Eye, DollarSign } from 'lucide-react';
+import { Plus, Trash2, ClipboardList, Download, Printer, X, Eye, DollarSign, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
@@ -35,9 +35,10 @@ export function Proposals() {
   const [phases, setPhases]             = useState([{ id: Date.now(), name: '', deliverables: '', deadline: '', price: '' }]);
   const [terms, setTerms]               = useState(DEFAULT_TERMS);
 
-  const [confirmDelete, setConfDel]   = useState(null);
-  const [loading, setLoading]         = useState(false);
+  const [confirmDelete, setConfDel]     = useState(null);
+  const [loading, setLoading]           = useState(false);
   const [viewProposal, setViewProposal] = useState(null);
+  const [editingId, setEditingId]       = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -48,12 +49,24 @@ export function Proposals() {
   }, []);
 
   const resetForm = () => {
+    setEditingId(null);
     setClientId('');
     setProjectName('');
     setProjectDesc('');
     setStatus('Borrador');
     setPhases([{ id: Date.now(), name: '', deliverables: '', deadline: '', price: '' }]);
     setTerms(DEFAULT_TERMS);
+  };
+
+  const openEdit = (proposal) => {
+    setEditingId(proposal.id);
+    setClientId(proposal.clientId ? String(proposal.clientId) : '');
+    setProjectName(proposal.projectName || '');
+    setProjectDesc(proposal.projectDesc || '');
+    setStatus(proposal.status || 'Borrador');
+    setPhases(proposal.phases?.length ? proposal.phases.map(p => ({ ...p, id: p.id || Date.now() + Math.random() })) : [{ id: Date.now(), name: '', deliverables: '', deadline: '', price: '' }]);
+    setTerms(proposal.terms || DEFAULT_TERMS);
+    setPanelOpen(true);
   };
 
   const generateFolio = (list) => {
@@ -84,27 +97,38 @@ export function Proposals() {
     await new Promise(r => setTimeout(r, 380));
 
     const total = calculateTotal(phases);
-    const newProposal = {
-      id: Date.now(),
-      folio: generateFolio(proposals),
-      clientId: clientId ? parseInt(clientId) : null,
-      projectName,
-      projectDesc,
-      status,
-      phases: phases.map(p => ({ ...p, price: parseFloat(p.price) })),
-      total,
-      terms,
-      date: new Date().toISOString(),
-    };
+    const parsedPhases = phases.map(p => ({ ...p, price: parseFloat(p.price) }));
 
-    const updated = [...proposals, newProposal];
+    let updated;
+    if (editingId) {
+      updated = proposals.map(p => p.id === editingId
+        ? { ...p, clientId: clientId ? parseInt(clientId) : null, projectName, projectDesc, status, phases: parsedPhases, total, terms }
+        : p
+      );
+      toast.success('Propuesta actualizada', { description: `${proposals.find(p => p.id === editingId)?.folio} guardada correctamente.` });
+    } else {
+      const newProposal = {
+        id: Date.now(),
+        folio: generateFolio(proposals),
+        clientId: clientId ? parseInt(clientId) : null,
+        projectName,
+        projectDesc,
+        status,
+        phases: parsedPhases,
+        total,
+        terms,
+        date: new Date().toISOString(),
+      };
+      updated = [...proposals, newProposal];
+      toast.success('Propuesta generada', { description: `${newProposal.folio} registrada exitosamente.` });
+    }
+
     setProposals(updated);
     await setStorageData('solno_proposals', updated);
     window.dispatchEvent(new Event('solno_data_updated'));
     setLoading(false);
     resetForm();
     setPanelOpen(false);
-    toast.success('Propuesta generada', { description: `${newProposal.folio} registrada exitosamente.` });
   };
 
   const handleDelete = async (id) => {
@@ -405,6 +429,14 @@ export function Proposals() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => openEdit(proposal)}
+                            className="text-brand/70 hover:text-brand hover:bg-brand/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
                           {confirmDelete === proposal.id ? (
                             <div className="flex items-center gap-1">
                               <Button size="sm" onClick={() => handleDelete(proposal.id)} className="bg-danger text-white h-8 px-2 text-xs">Sí</Button>
@@ -433,9 +465,9 @@ export function Proposals() {
       {/* ── CREATION PANEL ──────────────────────────────────────────────────────── */}
       <SlidePanel
         open={panelOpen}
-        onClose={() => setPanelOpen(false)}
-        title="Nueva Propuesta Comercial"
-        subtitle="Esquema de Fases, Plazos y Entregables"
+        onClose={() => { setPanelOpen(false); resetForm(); }}
+        title={editingId ? 'Editar Propuesta' : 'Nueva Propuesta Comercial'}
+        subtitle={editingId ? 'Modifica los datos y guarda los cambios' : 'Esquema de Fases, Plazos y Entregables'}
         icon={ClipboardList}
         accentColor="text-brand"
       >
@@ -587,8 +619,8 @@ export function Proposals() {
               className="flex-[2] bg-brand text-black hover:bg-brand/90 font-bold hover:shadow-glow"
             >
               {loading
-                ? <span className="animate-pulse">Generando...</span>
-                : <><ClipboardList className="w-4 h-4 mr-1.5" />Guardar Propuesta</>
+                ? <span className="animate-pulse">{editingId ? 'Guardando...' : 'Generando...'}</span>
+                : <><ClipboardList className="w-4 h-4 mr-1.5" />{editingId ? 'Guardar Cambios' : 'Guardar Propuesta'}</>
               }
             </Button>
           </div>

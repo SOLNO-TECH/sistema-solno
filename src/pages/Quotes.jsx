@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { SlidePanel } from '../components/ui/SlidePanel';
 import { getStorageData, setStorageData } from '../lib/utils';
-import { Plus, Trash2, FileText, Link as LinkIcon, DollarSign, Printer, X, Eye, Globe, Monitor, Server, Wrench, Headphones, BarChart2, Tag, LayoutTemplate, Download } from 'lucide-react';
+import { Plus, Trash2, FileText, Link as LinkIcon, DollarSign, Printer, X, Eye, Globe, Monitor, Server, Wrench, Headphones, BarChart2, Tag, LayoutTemplate, Download, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
@@ -45,7 +45,8 @@ export function Quotes() {
 
   const [confirmDelete, setConfDel]   = useState(null);
   const [loading, setLoading]         = useState(false);
-  const [viewQuote, setViewQuote]     = useState(null); // Quote object to preview/print
+  const [viewQuote, setViewQuote]     = useState(null);
+  const [editingId, setEditingId]     = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -55,12 +56,23 @@ export function Quotes() {
     load();
   }, []);
 
-  const resetForm = () => { 
-    setClientId(''); 
-    setProjectType('Web'); 
-    setStatus('Pendiente'); 
+  const resetForm = () => {
+    setEditingId(null);
+    setClientId('');
+    setProjectType('Web');
+    setStatus('Pendiente');
     setItems([{ id: Date.now(), qty: 1, desc: '', price: '' }]);
     setTerms(DEFAULT_TERMS);
+  };
+
+  const openEdit = (quote) => {
+    setEditingId(quote.id);
+    setClientId(quote.clientId ? String(quote.clientId) : '');
+    setProjectType(quote.projectType || 'Web');
+    setStatus(quote.status || 'Pendiente');
+    setItems(quote.items?.length ? quote.items.map(i => ({ ...i, id: i.id || Date.now() + Math.random() })) : [{ id: Date.now(), qty: 1, desc: '', price: '' }]);
+    setTerms(quote.terms || DEFAULT_TERMS);
+    setPanelOpen(true);
   };
 
   // Math Helpers
@@ -97,34 +109,43 @@ export function Quotes() {
     }
     setLoading(true);
     await new Promise(r => setTimeout(r, 380));
-    
+
     const subtotal = calculateSubtotal(items);
     const iva = subtotal * 0.16;
     const total = subtotal + iva;
+    const parsedItems = items.map(i => ({ ...i, qty: parseFloat(i.qty), price: parseFloat(i.price) }));
 
-    const newQuote = {
-      id: Date.now(),
-      folio: generateFolio(quotes),
-      clientId: clientId ? parseInt(clientId) : null,
-      projectType,
-      status,
-      items: items.map(i => ({ ...i, qty: parseFloat(i.qty), price: parseFloat(i.price) })),
-      subtotal,
-      iva,
-      total,
-      terms,
-      date: new Date().toISOString(),
-    };
+    let updated;
+    if (editingId) {
+      updated = quotes.map(q => q.id === editingId
+        ? { ...q, clientId: clientId ? parseInt(clientId) : null, projectType, status, items: parsedItems, subtotal, iva, total, terms }
+        : q
+      );
+      toast.success('Cotización actualizada', { description: `${quotes.find(q => q.id === editingId)?.folio} guardada correctamente.` });
+    } else {
+      const newQuote = {
+        id: Date.now(),
+        folio: generateFolio(quotes),
+        clientId: clientId ? parseInt(clientId) : null,
+        projectType,
+        status,
+        items: parsedItems,
+        subtotal,
+        iva,
+        total,
+        terms,
+        date: new Date().toISOString(),
+      };
+      updated = [...quotes, newQuote];
+      toast.success('Cotización generada', { description: `${newQuote.folio} registrada exitosamente.` });
+    }
 
-    const updated = [...quotes, newQuote];
     setQuotes(updated);
     await setStorageData('solno_quotes', updated);
     window.dispatchEvent(new Event('solno_data_updated'));
-    
     setLoading(false);
     resetForm();
     setPanelOpen(false);
-    toast.success('Cotización generada', { description: `${newQuote.folio} registrada exitosamente.` });
   };
 
   const handleDelete = async (id) => {
@@ -370,7 +391,10 @@ export function Quotes() {
                           <Button variant="ghost" onClick={() => setViewQuote(quote)} className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity" title="Ver / Imprimir">
                             <Eye className="w-4 h-4" />
                           </Button>
-                          
+                          <Button variant="ghost" onClick={() => openEdit(quote)} className="text-brand/70 hover:text-brand hover:bg-brand/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity" title="Editar">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+
                           {confirmDelete === quote.id ? (
                             <div className="flex items-center gap-1">
                               <Button size="sm" onClick={() => handleDelete(quote.id)} className="bg-danger text-white h-8 px-2 text-xs">Sí</Button>
@@ -395,8 +419,9 @@ export function Quotes() {
       </Card>
 
       {/* --- CREATION PANEL --- */}
-      <SlidePanel open={panelOpen} onClose={() => setPanelOpen(false)}
-        title="Crear Cotización Detallada" subtitle="Generador de Folio y PDF Automático"
+      <SlidePanel open={panelOpen} onClose={() => { setPanelOpen(false); resetForm(); }}
+        title={editingId ? 'Editar Cotización' : 'Crear Cotización Detallada'}
+        subtitle={editingId ? 'Modifica los datos y guarda los cambios' : 'Generador de Folio y PDF Automático'}
         icon={FileText} accentColor="text-brand">
         <form onSubmit={handleAdd} className="space-y-6 pb-6">
           
@@ -470,7 +495,10 @@ export function Quotes() {
           <div className="flex gap-3 pt-4 sticky bottom-0 bg-[#0a0a0a] pb-4">
             <Button type="button" variant="ghost" onClick={() => setPanelOpen(false)} className="flex-1 border border-white/10 text-gray-400 hover:text-white">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-[2] bg-brand text-black hover:bg-brand/90 font-bold hover:shadow-glow">
-              {loading ? <span className="animate-pulse">Generando...</span> : <><FileText className="w-4 h-4 mr-1.5" />Guardar Cotización</>}
+              {loading
+                ? <span className="animate-pulse">{editingId ? 'Guardando...' : 'Generando...'}</span>
+                : <><FileText className="w-4 h-4 mr-1.5" />{editingId ? 'Guardar Cambios' : 'Guardar Cotización'}</>
+              }
             </Button>
           </div>
         </form>
