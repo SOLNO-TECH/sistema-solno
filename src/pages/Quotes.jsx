@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { SlidePanel } from '../components/ui/SlidePanel';
+import { DocumentPreviewOverlay } from '../components/DocumentPreviewOverlay';
 import { getStorageData, setStorageData } from '../lib/utils';
 import { Plus, Trash2, FileText, Link as LinkIcon, DollarSign, Printer, X, Eye, Globe, Monitor, Server, Wrench, Headphones, BarChart2, Tag, LayoutTemplate, Download, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -438,37 +438,16 @@ export function Quotes() {
         </form>
       </SlidePanel>
 
-      {/* Vista previa — portal en body para barra siempre visible */}
-      {viewQuote && createPortal(
-        <AnimatePresence>
-          <motion.div
-            key="quote-preview"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[250] flex flex-col bg-black/85 backdrop-blur-sm print:bg-white print:static print:block fm-no-transition"
-          >
-            <div className="no-print shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-[#0a0a0a]">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">Vista previa — {viewQuote.folio}</p>
-                <p className="text-xs text-gray-500">Descarga el PDF o cierra para volver al listado</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button onClick={handleDownloadFromPreview} className="bg-brand text-black font-bold hover:shadow-glow flex-1 sm:flex-none">
-                  <Download className="w-4 h-4 mr-2" /> Descargar PDF
-                </Button>
-                <Button onClick={() => window.print()} className="bg-white/10 text-white border border-white/10 hidden sm:inline-flex">
-                  <Printer className="w-4 h-4 mr-2" /> Imprimir
-                </Button>
-                <Button onClick={() => setViewQuote(null)} variant="ghost" className="text-gray-300 hover:text-white border border-white/10 shrink-0">
-                  <X className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Cerrar</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-auto py-4 sm:py-8 px-2 sm:px-4 print:py-0 doc-preview-viewport">
-              <div className="doc-preview-scale">
-              <div id="quote-document" className="text-black w-[800px] min-w-[800px] shadow-2xl print:shadow-none relative font-sans mx-auto overflow-hidden bg-white" style={{ height: '1035px' }}>
+      {viewQuote && (
+      <DocumentPreviewOverlay
+        open
+        onClose={() => setViewQuote(null)}
+        title={`Vista previa — ${viewQuote.folio}`}
+        subtitle="Usa los botones de abajo para descargar, imprimir o salir"
+        onDownload={handleDownloadFromPreview}
+      >
+        <div className="doc-preview-scale">
+          <div id="quote-document" className="text-black w-[800px] min-w-[800px] shadow-2xl print:shadow-none relative font-sans mx-auto overflow-hidden bg-white" style={{ height: '1035px' }}>
                 <img
                   src="/hoja.jpg"
                   alt=""
@@ -552,20 +531,8 @@ export function Quotes() {
                   </div>
                 </div>
               </div>
-              </div>
-            </div>
-
-            <div className="no-print shrink-0 sm:hidden flex gap-2 p-3 border-t border-white/10 bg-[#0a0a0a]">
-              <Button onClick={handleDownloadFromPreview} className="flex-1 bg-brand text-black font-bold">
-                <Download className="w-4 h-4 mr-2" /> Descargar PDF
-              </Button>
-              <Button onClick={() => setViewQuote(null)} variant="ghost" className="border border-white/10 text-white">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
-        </AnimatePresence>,
-        document.body
+        </div>
+      </DocumentPreviewOverlay>
       )}
     </div>
   );

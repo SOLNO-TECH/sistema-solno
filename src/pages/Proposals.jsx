@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { SlidePanel } from '../components/ui/SlidePanel';
+import { DocumentPreviewOverlay } from '../components/DocumentPreviewOverlay';
 import { getStorageData, setStorageData } from '../lib/utils';
 import { Plus, Trash2, ClipboardList, Download, Printer, X, Eye, DollarSign, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -143,6 +143,22 @@ export function Proposals() {
 
   const totalSum = proposals.reduce((acc, p) => acc + (p.total || 0), 0);
   const previewClient = viewProposal ? clients.find(c => c.id === viewProposal.clientId) : null;
+
+  const handleDownloadProposalPdf = () => {
+    const element = document.getElementById('proposal-document');
+    if (!element || !viewProposal) {
+      toast.error('No se pudo generar el PDF');
+      return;
+    }
+    toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
+    html2pdf().set({
+      margin: 0.2,
+      filename: `${viewProposal.folio}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).from(element).save().then(() => toast.success('Descargado correctamente'));
+  };
 
   return (
     <div className="space-y-6 relative">
@@ -443,55 +459,20 @@ export function Proposals() {
         </form>
       </SlidePanel>
 
-      {viewProposal && createPortal(
-        <AnimatePresence>
-          <motion.div
-            key="proposal-preview"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[250] flex flex-col bg-black/85 backdrop-blur-sm print:bg-white print:static print:block fm-no-transition"
+      {viewProposal && (
+      <DocumentPreviewOverlay
+        open
+        onClose={() => setViewProposal(null)}
+        title={`Vista previa — ${viewProposal.folio}`}
+        subtitle="Usa los botones de abajo para descargar, imprimir o salir"
+        onDownload={handleDownloadProposalPdf}
+      >
+        <div className="doc-preview-scale">
+          <div
+            id="proposal-document"
+            className="bg-white text-black min-w-[800px] w-[800px] shadow-2xl print:shadow-none p-8 md:p-10 relative font-sans mx-auto"
+            style={{ minHeight: '1035px' }}
           >
-            <div className="no-print shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-[#0a0a0a]">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">Vista previa — {viewProposal.folio}</p>
-                <p className="text-xs text-gray-500">Descarga el PDF o cierra para volver al listado</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => {
-                    const element = document.getElementById('proposal-document');
-                    if (element) {
-                      toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
-                      html2pdf().set({
-                        margin: 0.2,
-                        filename: `${viewProposal.folio}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true },
-                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                      }).from(element).save().then(() => toast.success('Descargado correctamente'));
-                    }
-                  }}
-                  className="bg-brand text-black font-bold hover:shadow-glow flex-1 sm:flex-none"
-                >
-                  <Download className="w-4 h-4 mr-2" /> Descargar PDF
-                </Button>
-                <Button onClick={() => window.print()} className="bg-white/10 text-white border border-white/10 hidden sm:inline-flex">
-                  <Printer className="w-4 h-4 mr-2" /> Imprimir
-                </Button>
-                <Button onClick={() => setViewProposal(null)} variant="ghost" className="text-gray-300 hover:text-white border border-white/10 shrink-0">
-                  <X className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Cerrar</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-auto py-4 sm:py-8 px-2 sm:px-4 print:py-0 doc-preview-viewport">
-              <div className="doc-preview-scale">
-                <div
-                  id="proposal-document"
-                  className="bg-white text-black min-w-[800px] w-[800px] shadow-2xl print:shadow-none p-8 md:p-10 relative font-sans mx-auto"
-                  style={{ minHeight: '1035px' }}
-                >
                   <div className="flex justify-between items-start mb-6 border-b-2 border-black/10 pb-6">
                     <div>
                       <div className="mb-2">
@@ -585,35 +566,8 @@ export function Proposals() {
                     <div className="text-xs text-gray-600 whitespace-pre-line leading-relaxed">{viewProposal.terms || DEFAULT_TERMS}</div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="no-print shrink-0 sm:hidden flex gap-2 p-3 border-t border-white/10 bg-[#0a0a0a]">
-              <Button
-                onClick={() => {
-                  const element = document.getElementById('proposal-document');
-                  if (element) {
-                    toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
-                    html2pdf().set({
-                      margin: 0.2,
-                      filename: `${viewProposal.folio}.pdf`,
-                      image: { type: 'jpeg', quality: 0.98 },
-                      html2canvas: { scale: 2, useCORS: true },
-                      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    }).from(element).save().then(() => toast.success('Descargado correctamente'));
-                  }
-                }}
-                className="flex-1 bg-brand text-black font-bold"
-              >
-                <Download className="w-4 h-4 mr-2" /> Descargar PDF
-              </Button>
-              <Button onClick={() => setViewProposal(null)} variant="ghost" className="border border-white/10 text-white">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
-        </AnimatePresence>,
-        document.body
+        </div>
+      </DocumentPreviewOverlay>
       )}
     </div>
   );

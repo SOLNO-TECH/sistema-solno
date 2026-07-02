@@ -90,7 +90,8 @@
   /* Hide all UI elements except the printable area */
   #root > div > div > div > header,
   #root > div > div > nav,
-  .no-print {
+  .no-print,
+  .preview-chrome {
     display: none !important;
   }
 
