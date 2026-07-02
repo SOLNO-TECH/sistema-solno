@@ -160,6 +160,35 @@ export function Proposals() {
     }).from(element).save().then(() => toast.success('Descargado correctamente'));
   };
 
+  const waitForProposalDocument = async () => {
+    for (let i = 0; i < 30; i++) {
+      if (document.getElementById('proposal-document')) return true;
+      await new Promise(r => requestAnimationFrame(r));
+    }
+    return false;
+  };
+
+  const handleDownloadProposal = async (proposal, e) => {
+    e?.stopPropagation();
+    setViewProposal(proposal);
+    await new Promise(r => setTimeout(r, 100));
+    const ready = await waitForProposalDocument();
+    if (!ready) {
+      toast.error('No se pudo generar el PDF');
+      setViewProposal(null);
+      return;
+    }
+    const element = document.getElementById('proposal-document');
+    toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
+    html2pdf().set({
+      margin: 0.2,
+      filename: `${proposal.folio}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).from(element).save().then(() => toast.success('Descargado correctamente'));
+  };
+
   return (
     <div className="space-y-6 relative">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
@@ -252,12 +281,19 @@ export function Proposals() {
                         <span className="text-base font-bold text-white">
                           ${proposal.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap justify-end">
+                          <Button
+                            onClick={(e) => handleDownloadProposal(proposal, e)}
+                            className="bg-brand text-black hover:bg-brand/90 font-bold h-8 px-2.5 text-xs opacity-100 shrink-0"
+                            title="Descargar PDF"
+                          >
+                            <Download className="w-3.5 h-3.5 mr-1" /> PDF
+                          </Button>
                           <Button
                             variant="ghost"
                             onClick={() => setViewProposal(proposal)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Ver / Imprimir"
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 h-auto opacity-100"
+                            title="Ver propuesta"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>

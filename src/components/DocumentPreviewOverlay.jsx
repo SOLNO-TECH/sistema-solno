@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Download, Printer, X } from 'lucide-react';
-import { Button } from './ui/Button';
+
+const TOP = 56;
+const BOTTOM = 84;
 
 /**
- * Overlay de vista previa PDF — barras fijas arriba y abajo, siempre visibles.
+ * Overlay de vista previa — barras fijas con estilos inline (no dependen de Tailwind en producción).
  */
 export function DocumentPreviewOverlay({ open, onClose, title, subtitle, onDownload, children }) {
   useEffect(() => {
@@ -23,50 +25,107 @@ export function DocumentPreviewOverlay({ open, onClose, title, subtitle, onDownl
 
   if (!open) return null;
 
+  const btnBase = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 44,
+    padding: '0 16px',
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: 'pointer',
+    border: 'none',
+    gap: 6,
+    flex: 1,
+    minWidth: 0,
+  };
+
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-black/92 fm-no-transition"
       role="dialog"
       aria-modal="true"
       aria-label={title}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 2147483646,
+        background: 'rgba(0,0,0,0.96)',
+      }}
     >
-      {/* Barra superior — título */}
-      <div className="preview-chrome fixed top-0 left-0 right-0 z-[10001] bg-[#0d0d0d] border-b border-brand/30 px-4 py-3 shadow-lg">
-        <p className="text-sm font-bold text-white truncate">{title}</p>
-        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      {/* Barra superior */}
+      <div
+        className="preview-chrome"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2147483647,
+          padding: '10px 16px',
+          background: '#0a0a0a',
+          borderBottom: '2px solid #ccff00',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.8)',
+        }}
+      >
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#fff' }}>{title}</p>
+        {subtitle && (
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#888' }}>{subtitle}</p>
+        )}
       </div>
 
-      {/* Documento — área con scroll entre las barras */}
-      <div className="fixed top-[58px] bottom-[76px] left-0 right-0 overflow-auto doc-preview-viewport px-2 sm:px-4 py-4">
+      {/* Documento */}
+      <div
+        style={{
+          position: 'fixed',
+          top: TOP,
+          bottom: BOTTOM,
+          left: 0,
+          right: 0,
+          overflow: 'auto',
+          padding: '16px 8px',
+        }}
+      >
         {children}
       </div>
 
-      {/* Barra inferior — acciones siempre visibles */}
-      <div className="preview-chrome fixed bottom-0 left-0 right-0 z-[10001] bg-[#0d0d0d] border-t border-brand/30 px-3 sm:px-4 py-3 flex gap-2 shadow-[0_-12px_40px_rgba(0,0,0,0.9)]">
-        <Button
-          type="button"
-          onClick={onDownload}
-          className="flex-1 min-w-0 bg-brand text-black font-bold h-11 text-xs sm:text-sm"
-        >
-          <Download className="w-4 h-4 mr-1.5 shrink-0" />
+      {/* Barra inferior — botones grandes siempre visibles */}
+      <div
+        className="preview-chrome"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2147483647,
+          padding: '12px 12px max(12px, env(safe-area-inset-bottom))',
+          background: '#0a0a0a',
+          borderTop: '3px solid #ccff00',
+          boxShadow: '0 -8px 32px rgba(0,0,0,0.9)',
+          display: 'flex',
+          gap: 8,
+        }}
+      >
+        <button type="button" onClick={onDownload} style={{ ...btnBase, background: '#ccff00', color: '#000' }}>
+          <Download size={18} />
           Descargar PDF
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
           onClick={() => window.print()}
-          className="flex-1 min-w-0 bg-white/10 text-white border border-white/20 font-bold h-11 text-xs sm:text-sm"
+          style={{ ...btnBase, background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)' }}
         >
-          <Printer className="w-4 h-4 mr-1.5 shrink-0" />
+          <Printer size={18} />
           Imprimir
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
           onClick={onClose}
-          className="shrink-0 bg-white/5 text-white border border-white/20 font-bold h-11 px-3 sm:px-4"
+          style={{ ...btnBase, flex: '0 0 auto', background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.4)', padding: '0 20px' }}
         >
-          <X className="w-4 h-4 sm:mr-1" />
-          <span className="hidden sm:inline">Salir</span>
-        </Button>
+          <X size={18} />
+          Salir
+        </button>
       </div>
     </div>,
     document.body
