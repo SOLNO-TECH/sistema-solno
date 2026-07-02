@@ -186,7 +186,11 @@ export function Proposals() {
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    }).from(element).save().then(() => toast.success('Descargado correctamente'));
+    }).from(element).save()
+      .then(() => {
+        toast.success('Descargado correctamente');
+        setViewProposal(null);
+      });
   };
 
   return (
@@ -293,11 +297,12 @@ export function Proposals() {
                         </span>
                         <div className="flex items-center gap-1 flex-wrap justify-end">
                           <Button
+                            variant="ghost"
                             onClick={(e) => handleDownloadProposal(proposal, e)}
-                            className="bg-brand text-black hover:bg-brand/90 font-bold h-8 px-2.5 text-xs opacity-100 shrink-0"
+                            className="text-brand hover:text-brand hover:bg-brand/10 p-2 h-auto opacity-100 shrink-0"
                             title="Descargar PDF"
                           >
-                            <Download className="w-3.5 h-3.5 mr-1" /> PDF
+                            <Download className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
