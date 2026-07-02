@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -85,6 +84,16 @@ export function Quotes() {
       await new Promise(r => requestAnimationFrame(r));
     }
     return false;
+  };
+
+  const handleDownloadFromPreview = async () => {
+    if (!viewQuote) return;
+    const ready = await waitForQuoteDocument();
+    if (!ready) {
+      toast.error('No se pudo generar el PDF', { description: 'El documento aún no está listo.' });
+      return;
+    }
+    await downloadQuotePdf(viewQuote);
   };
 
   const resetForm = () => {
@@ -202,20 +211,9 @@ export function Quotes() {
     setQuotes(updated);
     await setStorageData('solno_quotes', updated);
     window.dispatchEvent(new Event('solno_data_updated'));
-
-    flushSync(() => {
-      setLoading(false);
-      resetForm();
-      setPanelOpen(false);
-      setViewQuote(savedQuote);
-    });
-
-    const ready = await waitForQuoteDocument();
-    if (ready) {
-      await downloadQuotePdf(savedQuote);
-    } else {
-      toast.error('Cotización guardada', { description: 'Usa el botón Descargar PDF en la vista previa.' });
-    }
+    setLoading(false);
+    resetForm();
+    setPanelOpen(false);
   };
 
   const handleDelete = async (id) => {
@@ -227,184 +225,29 @@ export function Quotes() {
     toast.error('Cotización eliminada');
   };
 
-  const totalSum = quotes.reduce((acc, q) => acc + (q.total || q.amount || 0), 0); // fallback for old data
+  const totalSum = quotes.reduce((acc, q) => acc + (q.total || q.amount || 0), 0);
+  const previewClient = viewQuote ? clients.find(c => c.id === viewQuote.clientId) : null;
 
-  // --- PRINT PREVIEW MODAL ---
-  if (viewQuote) {
-    const linkedClient = clients.find(c => c.id === viewQuote.clientId);
-    return (
-      <div 
-        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex justify-center overflow-y-auto print:bg-white print:static print:block"
-        onClick={() => setViewQuote(null)}
-      >
-        <div 
-          className="min-h-screen py-10 print:py-0 px-4 w-full overflow-x-auto pb-32"
-          onClick={(e) => e.stopPropagation()}
-        >
-          
-          {/* Action Bar (Hidden on print) */}
-          <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-3 no-print z-[200] px-4 pointer-events-none">
-            <div className="flex gap-2 sm:gap-3 pointer-events-auto bg-black/80 backdrop-blur-xl p-2 sm:p-3 rounded-2xl border border-white/10 shadow-2xl">
-              <Button onClick={() => downloadQuotePdf(viewQuote)} className="bg-brand text-black font-bold hover:shadow-glow shadow-lg px-4 sm:px-6">
-                <Download className="w-4 h-4 mr-2" /> Descargar PDF
-              </Button>
-              <Button onClick={() => window.print()} className="bg-white/10 text-white font-bold hover:bg-white/20 shadow-lg border border-white/10 hidden sm:flex px-6">
-                <Printer className="w-4 h-4 mr-2" /> Imprimir
-              </Button>
-              <Button onClick={() => setViewQuote(null)} variant="outline" className="bg-transparent border-transparent text-gray-400 hover:text-white hover:bg-white/10 shadow-none px-3">
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Paper Document — carta US: 800×1035px */}
-          <div id="quote-document" className="text-black w-[800px] min-w-[800px] shadow-2xl print:shadow-none relative font-sans mx-auto overflow-hidden" style={{ height: '1035px' }}>
-            <img
-              src="/hoja.jpg"
-              alt=""
-              className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none print:object-fill"
-              aria-hidden="true"
-            />
-            <div className="relative z-10 px-10 pt-[228px] pb-[132px] h-full flex flex-col">
-
-              {/* Folio y fecha */}
-              <div className="absolute top-[148px] right-10 text-right">
-                <p className="text-base font-black text-gray-900 tracking-wide">{viewQuote.folio}</p>
-                <p className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mt-1 mb-0.5">Fecha de expedición</p>
-                <p className="text-xs font-semibold text-gray-700">
-                  {new Date(viewQuote.date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-
-              {/* Cliente y proyecto */}
-              <div className="mb-4 grid grid-cols-2 gap-10">
-                <div>
-                  <h3 className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mb-1.5 pb-1 border-b-2 border-[#8ca800]/40">
-                    Cotizado a
-                  </h3>
-                  {linkedClient ? (
-                    <div className="space-y-0">
-                      <p className="font-bold text-sm text-gray-900">{linkedClient.firstName} {linkedClient.lastName}</p>
-                      <p className="text-xs text-gray-600 font-medium">{linkedClient.company || 'Particular'}</p>
-                      {linkedClient.email && <p className="text-[10px] text-gray-500 mt-1">{linkedClient.email}</p>}
-                      {linkedClient.phone && <p className="text-[10px] text-gray-500">{linkedClient.phone}</p>}
-                    </div>
-                  ) : (
-                    <p className="text-xs font-medium text-gray-500">Cliente General</p>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mb-1.5 pb-1 border-b-2 border-[#8ca800]/40">
-                    Proyecto / Servicio
-                  </h3>
-                  <p className="font-bold text-sm text-[#6d8f00]">{viewQuote.projectType}</p>
-                </div>
-              </div>
-
-              {/* Tabla de conceptos */}
-              <div className="bg-white border border-gray-200 rounded-md overflow-hidden mb-3 shadow-sm">
-                <table className="w-full text-xs table-fixed border-collapse">
-                  <thead>
-                    <tr className="bg-black text-white">
-                      <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '12%' }}>Cantidad</th>
-                      <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '48%' }}>Descripción</th>
-                      <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '20%' }}>P. Unitario</th>
-                      <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '20%' }}>Importe</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    {(viewQuote.items || []).map((item, idx) => (
-                      <tr key={idx} className="border-b border-gray-200 last:border-b-0">
-                        <td className="py-1.5 px-2 font-medium text-gray-800 text-center align-middle">{item.qty}</td>
-                        <td className="py-1.5 px-2 font-medium text-gray-900 text-center align-middle">{item.desc}</td>
-                        <td className="py-1.5 px-2 text-gray-700 text-center align-middle tabular-nums">
-                          ${parseFloat(item.price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="py-1.5 px-2 font-semibold text-gray-900 text-center align-middle tabular-nums">
-                          ${(item.qty * item.price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    ))}
-                    {(!viewQuote.items || viewQuote.items.length === 0) && (
-                      <tr className="border-b border-gray-200">
-                        <td className="py-1.5 px-2 font-medium text-gray-800 text-center align-middle">1</td>
-                        <td className="py-1.5 px-2 font-medium text-gray-900 text-center align-middle">{viewQuote.description || 'Concepto General'}</td>
-                        <td className="py-1.5 px-2 text-gray-700 text-center align-middle tabular-nums">
-                          ${(viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="py-1.5 px-2 font-semibold text-gray-900 text-center align-middle tabular-nums">
-                          ${(viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Totales */}
-              <div className="flex justify-end mb-3">
-                <div className="w-60 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
-                  <div className="px-4 py-2.5 space-y-1.5">
-                    <div className="flex justify-between items-center text-xs text-gray-600">
-                      <span className="uppercase text-[9px] font-semibold tracking-wider text-gray-500">Subtotal</span>
-                      <span className="font-medium tabular-nums text-gray-800">
-                        ${(viewQuote.subtotal || viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-gray-600">
-                      <span className="uppercase text-[9px] font-semibold tracking-wider text-gray-500">IVA (16%)</span>
-                      <span className="font-medium tabular-nums text-gray-800">
-                        ${(viewQuote.iva || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center bg-black text-white px-4 py-2.5">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]">Total</span>
-                    <span className="text-lg font-black tabular-nums tracking-tight">
-                      ${(viewQuote.total || viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Condiciones */}
-              <div className="bg-white/90 border border-gray-200 rounded-md px-4 py-2.5 shadow-sm border-l-4 border-l-[#8ca800] mt-auto">
-                <h4 className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-800 mb-1">
-                  Condiciones y formas de pago
-                </h4>
-                <div className="text-[10px] text-gray-600 whitespace-pre-line leading-snug">
-                  {viewQuote.terms || DEFAULT_TERMS}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --- CRUD LIST VIEW ---
   return (
     <div className="space-y-6 relative">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <FileText className="w-8 h-8 text-brand" /> Cotizaciones
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <FileText className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Cotizaciones
           </h1>
-          <p className="text-gray-400 mt-2">Crea cotizaciones profesionales, calcula el IVA y expórtalas en PDF.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Crea cotizaciones profesionales, calcula el IVA y expórtalas en PDF.</p>
         </div>
         <Button onClick={openNew}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0">
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Nueva Cotización
         </Button>
       </div>
 
       <Card className="glass border-white/5">
         <CardHeader className="border-b border-white/5 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-white font-bold">Historial de Cotizaciones</CardTitle>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-brand" />
                 <span className="text-sm font-bold text-brand">${totalSum.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
@@ -431,7 +274,7 @@ export function Quotes() {
                   const typeObj = PROJECT_TYPES.find(t => t.value === quote.projectType);
                   return (
                     <motion.div key={quote.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 20 }}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 hover:bg-white/2 group gap-4">
+                      className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-4">
                       
                       <div className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer" onClick={() => setViewQuote(quote)}>
                         <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0">
@@ -515,7 +358,7 @@ export function Quotes() {
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={LABEL}>Vincular a Cliente</label>
               <select value={clientId} onChange={e => setClientId(e.target.value)} className={SEL}>
@@ -586,13 +429,134 @@ export function Quotes() {
             <Button type="button" variant="ghost" onClick={() => setPanelOpen(false)} className="flex-1 border border-white/10 text-gray-400 hover:text-white">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-[2] bg-brand text-black hover:bg-brand/90 font-bold hover:shadow-glow">
               {loading
-                ? <span className="animate-pulse">{editingId ? 'Guardando...' : 'Generando PDF...'}</span>
-                : <><Download className="w-4 h-4 mr-1.5" />Guardar y Descargar PDF</>
+                ? <span className="animate-pulse">{editingId ? 'Guardando...' : 'Guardando...'}</span>
+                : <><FileText className="w-4 h-4 mr-1.5" />{editingId ? 'Guardar Cambios' : 'Guardar Cotización'}</>
               }
             </Button>
           </div>
         </form>
       </SlidePanel>
+
+      {/* Vista previa — overlay sin reemplazar toda la pantalla */}
+      <AnimatePresence>
+        {viewQuote && (
+          <motion.div
+            key="quote-preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col bg-black/70 backdrop-blur-sm print:bg-white print:static print:block"
+            onClick={() => setViewQuote(null)}
+          >
+            <div className="no-print shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-[#0a0a0a]/95">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">Vista previa — {viewQuote.folio}</p>
+                <p className="text-xs text-gray-500">Descarga o imprime la cotización</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button onClick={(e) => { e.stopPropagation(); handleDownloadFromPreview(); }} className="bg-brand text-black font-bold hover:shadow-glow flex-1 sm:flex-none">
+                  <Download className="w-4 h-4 mr-2" /> PDF
+                </Button>
+                <Button onClick={(e) => { e.stopPropagation(); window.print(); }} className="bg-white/10 text-white border border-white/10 hidden sm:flex">
+                  <Printer className="w-4 h-4 mr-2" /> Imprimir
+                </Button>
+                <Button onClick={(e) => { e.stopPropagation(); setViewQuote(null); }} variant="ghost" className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto py-4 sm:py-8 px-2 sm:px-4 print:py-0 doc-preview-viewport" onClick={(e) => e.stopPropagation()}>
+              <div className="doc-preview-scale">
+              <div id="quote-document" className="text-black w-[800px] min-w-[800px] shadow-2xl print:shadow-none relative font-sans mx-auto overflow-hidden bg-white" style={{ height: '1035px' }}>
+                <img
+                  src="/hoja.jpg"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none print:object-fill"
+                  aria-hidden="true"
+                />
+                <div className="relative z-10 px-10 pt-[228px] pb-[132px] h-full flex flex-col">
+                  <div className="absolute top-[148px] right-10 text-right">
+                    <p className="text-base font-black text-gray-900 tracking-wide">{viewQuote.folio}</p>
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mt-1 mb-0.5">Fecha de expedición</p>
+                    <p className="text-xs font-semibold text-gray-700">
+                      {new Date(viewQuote.date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
+
+                  <div className="mb-4 grid grid-cols-2 gap-10">
+                    <div>
+                      <h3 className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mb-1.5 pb-1 border-b-2 border-[#8ca800]/40">Cotizado a</h3>
+                      {previewClient ? (
+                        <div className="space-y-0">
+                          <p className="font-bold text-sm text-gray-900">{previewClient.firstName} {previewClient.lastName}</p>
+                          <p className="text-xs text-gray-600 font-medium">{previewClient.company || 'Particular'}</p>
+                          {previewClient.email && <p className="text-[10px] text-gray-500 mt-1">{previewClient.email}</p>}
+                          {previewClient.phone && <p className="text-[10px] text-gray-500">{previewClient.phone}</p>}
+                        </div>
+                      ) : (
+                        <p className="text-xs font-medium text-gray-500">Cliente General</p>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-[9px] text-gray-500 uppercase font-bold tracking-[0.18em] mb-1.5 pb-1 border-b-2 border-[#8ca800]/40">Proyecto / Servicio</h3>
+                      <p className="font-bold text-sm text-[#6d8f00]">{viewQuote.projectType}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-md overflow-hidden mb-3 shadow-sm">
+                    <table className="w-full text-xs table-fixed border-collapse">
+                      <thead>
+                        <tr className="bg-black text-white">
+                          <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '12%' }}>Cantidad</th>
+                          <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '48%' }}>Descripción</th>
+                          <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '20%' }}>P. Unitario</th>
+                          <th className="py-1.5 px-2 font-bold text-[10px] uppercase tracking-wider text-center" style={{ width: '20%' }}>Importe</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white">
+                        {(viewQuote.items || []).map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-200 last:border-b-0">
+                            <td className="py-1.5 px-2 font-medium text-gray-800 text-center align-middle">{item.qty}</td>
+                            <td className="py-1.5 px-2 font-medium text-gray-900 text-center align-middle">{item.desc}</td>
+                            <td className="py-1.5 px-2 text-gray-700 text-center align-middle tabular-nums">${parseFloat(item.price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
+                            <td className="py-1.5 px-2 font-semibold text-gray-900 text-center align-middle tabular-nums">${(item.qty * item.price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex justify-end mb-3">
+                    <div className="w-60 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
+                      <div className="px-4 py-2.5 space-y-1.5">
+                        <div className="flex justify-between items-center text-xs text-gray-600">
+                          <span className="uppercase text-[9px] font-semibold tracking-wider text-gray-500">Subtotal</span>
+                          <span className="font-medium tabular-nums text-gray-800">${(viewQuote.subtotal || viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-600">
+                          <span className="uppercase text-[9px] font-semibold tracking-wider text-gray-500">IVA (16%)</span>
+                          <span className="font-medium tabular-nums text-gray-800">${(viewQuote.iva || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center bg-black text-white px-4 py-2.5">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.18em]">Total</span>
+                        <span className="text-lg font-black tabular-nums tracking-tight">${(viewQuote.total || viewQuote.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 border border-gray-200 rounded-md px-4 py-2.5 shadow-sm border-l-4 border-l-[#8ca800] mt-auto">
+                    <h4 className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-800 mb-1">Condiciones y formas de pago</h4>
+                    <div className="text-[10px] text-gray-600 whitespace-pre-line leading-snug">{viewQuote.terms || DEFAULT_TERMS}</div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

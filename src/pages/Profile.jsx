@@ -217,7 +217,7 @@ export function Profile() {
 
       const saved = {
         displayName: user.displayName || user.username || 'Admin',
-        email: user.email || '',
+        email: user.email || (user.username === 'admin' ? 'admin@gruposolno.com' : ''),
         phone: user.phone || '',
         location: user.location || '',
         bio: user.bio || '',
@@ -308,15 +308,15 @@ export function Profile() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <UserCircle className="w-8 h-8 text-brand" /> Mi Perfil
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <UserCircle className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Mi Perfil
           </h1>
-          <p className="text-gray-400 mt-2">Administra tu información, seguridad y actividad de cuenta.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Administra tu información, seguridad y actividad de cuenta.</p>
         </div>
         {!editing ? (
-          <Button onClick={startEdit} className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold shrink-0">
+          <Button onClick={startEdit} className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold shrink-0 w-full sm:w-auto">
             <Edit3 className="w-4 h-4 mr-2" /> <span className="hidden sm:inline">Editar Perfil</span>
           </Button>
         ) : (
@@ -389,7 +389,7 @@ export function Profile() {
                 <div>
                   <label className={LABEL}>Correo Electrónico</label>
                   {editing
-                    ? <Input type="email" value={draft.email} onChange={e => setDraft(d => ({ ...d, email: e.target.value }))} className={FIELD} placeholder="correo@empresa.com" />
+                    ? <Input type="email" value={draft.email} onChange={e => setDraft(d => ({ ...d, email: e.target.value }))} className={FIELD} placeholder="nombre@gruposolno.com" />
                     : <p className="text-sm text-white bg-black/40 border border-white/5 rounded-md px-3 py-2">{profile.email || '—'}</p>}
                 </div>
                 <div>

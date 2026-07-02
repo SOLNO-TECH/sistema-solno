@@ -62,24 +62,24 @@ export function Expenses() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <CreditCard className="w-8 h-8 text-danger" /> Gastos Operativos
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <CreditCard className="w-7 h-7 sm:w-8 sm:h-8 text-danger shrink-0" /> Gastos Operativos
           </h1>
-          <p className="text-gray-400 mt-2">Registro y control de los egresos de la empresa.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Registro y control de los egresos de la empresa.</p>
         </div>
         <Button onClick={() => { resetForm(); setPanelOpen(true); }}
-          className="bg-danger text-white hover:bg-danger/90 font-bold shrink-0">
+          className="bg-danger text-white hover:bg-danger/90 font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Registrar Gasto
         </Button>
       </div>
 
       <Card className="glass border-white/5">
         <CardHeader className="border-b border-white/5 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-white font-bold">Historial de Gastos</CardTitle>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-1.5">
                 <TrendingDown className="w-4 h-4 text-danger" />
                 <span className="text-sm font-bold text-danger">${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
@@ -103,8 +103,8 @@ export function Expenses() {
               <AnimatePresence>
                 {expenses.map(exp => (
                   <motion.div key={exp.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-white/2 group">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                    className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-danger/10 border border-danger/20 flex items-center justify-center shrink-0">
                         <ArrowDownRight className="w-4 h-4 text-danger" />
                       </div>
@@ -113,7 +113,7 @@ export function Expenses() {
                         <span className="text-xs text-gray-400">{exp.date}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0 ml-4">
+                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 sm:ml-4 flex-wrap">
                       <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md border ${CAT_COLORS[exp.category] || CAT_COLORS['Otro']}`}>{exp.category}</span>
                       <span className="text-sm font-bold text-danger">${(exp.amount || 0).toLocaleString()}</span>
                       {confirmDelete === exp.id ? (
@@ -123,7 +123,7 @@ export function Expenses() {
                         </div>
                       ) : (
                         <Button variant="ghost" onClick={() => setConfDel(exp.id)}
-                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}

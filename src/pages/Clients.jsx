@@ -52,22 +52,22 @@ export function Clients() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <UsersIcon className="w-8 h-8 text-brand" /> Clientes
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <UsersIcon className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Clientes
           </h1>
-          <p className="text-gray-400 mt-2">Directorio de clientes vinculado al módulo de cotizaciones.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Directorio de clientes vinculado al módulo de cotizaciones.</p>
         </div>
         <Button onClick={() => { resetForm(); setPanelOpen(true); }}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0">
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Nuevo Cliente
         </Button>
       </div>
 
       <Card className="glass border-white/5">
         <CardHeader className="border-b border-white/5 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-white font-bold">Directorio de Clientes</CardTitle>
             <span className="text-xs bg-white/5 border border-white/10 px-3 py-1 rounded-full text-gray-400">{clients.length} registros</span>
           </div>
@@ -87,20 +87,20 @@ export function Clients() {
               <AnimatePresence>
                 {clients.map(client => (
                   <motion.div key={client.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-white/2 group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">
+                    className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400 shrink-0">
                         {client.firstName.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{client.firstName} {client.lastName}</p>
-                        <div className="flex items-center gap-3 mt-0.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{client.firstName} {client.lastName}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                           {client.company && <div className="flex items-center gap-1"><Building2 className="w-3 h-3 text-white/25" /><span className="text-xs text-gray-400">{client.company}</span></div>}
                           {client.phone && <div className="flex items-center gap-1"><Phone className="w-3 h-3 text-white/25" /><span className="text-xs text-gray-400">{client.phone}</span></div>}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-end gap-3 shrink-0">
                       {confirmDelete === client.id ? (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-danger">¿Confirmar?</span>
@@ -109,7 +109,7 @@ export function Clients() {
                         </div>
                       ) : (
                         <Button variant="ghost" onClick={() => setConfDel(client.id)}
-                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
@@ -126,7 +126,7 @@ export function Clients() {
         title="Nuevo Cliente" subtitle="Módulo de Clientes · Solno Sistema"
         icon={UsersIcon} accentColor="text-brand">
         <form onSubmit={handleAdd} className="space-y-5">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className={LABEL}>Nombre(s) *</label>
               <Input value={firstName} onChange={e => setFirstName(e.target.value)} required placeholder="Carlos" className={FIELD} /></div>
             <div><label className={LABEL}>Apellidos *</label>

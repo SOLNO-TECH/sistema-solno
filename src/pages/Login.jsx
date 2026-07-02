@@ -30,7 +30,18 @@ export function Login() {
 
     if (match || isDefaultAdmin) {
       localStorage.setItem('solno_auth', 'true');
-      if (match) localStorage.setItem('solno_current_user', JSON.stringify(match));
+      if (match) {
+        localStorage.setItem('solno_current_user', JSON.stringify(match));
+      } else {
+        localStorage.setItem('solno_current_user', JSON.stringify({
+          id: 1,
+          username: 'admin',
+          displayName: 'Administrador',
+          email: 'admin@gruposolno.com',
+          role: 'Super Admin',
+          passwordHash: btoa('admin'),
+        }));
+      }
       sessionStorage.setItem('solno_show_welcome', 'true');
       // Log successful login
       const logs = JSON.parse(localStorage.getItem('solno_activity_log') || '[]');

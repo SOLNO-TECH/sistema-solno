@@ -20,7 +20,7 @@ export function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       // Fetch real data from the local storage mechanism
-      const usersData = await getStorageData('solno_users', [{ id: 1, name: 'Admin', email: 'admin@solno.com' }]);
+      const usersData = await getStorageData('solno_users', [{ id: 1, name: 'Admin', email: 'admin@gruposolno.com' }]);
       const clientsData = await getStorageData('solno_clients', []);
       const quotesData = await getStorageData('solno_quotes', []);
       const expensesData = await getStorageData('solno_expenses', []);
@@ -132,16 +132,16 @@ export function Dashboard() {
       animate="visible"
       className="space-y-6"
     >
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3 flex-wrap">
             Dashboard General
             <span className="flex h-3 w-3 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-brand"></span>
             </span>
           </h1>
-          <p className="text-mutedForeground mt-2">Resumen en tiempo real de todos los módulos del sistema.</p>
+          <p className="text-mutedForeground mt-1.5 sm:mt-2 text-sm sm:text-base">Resumen en tiempo real de todos los módulos del sistema.</p>
         </div>
       </div>
 

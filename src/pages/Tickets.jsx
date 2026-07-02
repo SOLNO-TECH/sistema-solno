@@ -113,7 +113,7 @@ function TicketCard({ item, index, columnId, users, projects, clients, suppliers
             {/* Delete btn */}
             <button
               onClick={() => onDelete(item.id, columnId)}
-              className="shrink-0 text-white/10 hover:text-danger transition-colors opacity-0 group-hover:opacity-100 mt-0.5"
+              className="shrink-0 text-white/10 hover:text-danger transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100 mt-0.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -199,7 +199,7 @@ function NewTicketModal({ onClose, onSubmit, users, projects, clients, suppliers
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
         transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-        className="w-full max-w-lg bg-[#080808] border border-white/10 rounded-2xl shadow-[0_30px_80px_rgba(0,0,0,0.9)] overflow-hidden"
+        className="w-full max-w-lg mx-3 sm:mx-auto max-h-[92vh] overflow-y-auto bg-[#080808] border border-white/10 rounded-2xl shadow-[0_30px_80px_rgba(0,0,0,0.9)]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -233,7 +233,7 @@ function NewTicketModal({ onClose, onSubmit, users, projects, clients, suppliers
               className="flex w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-brand resize-none" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={LBL}>Asignar a *</label>
               <select value={assigneeId} onChange={e => setAssignee(e.target.value)} required className={SEL}>
@@ -251,7 +251,7 @@ function NewTicketModal({ onClose, onSubmit, users, projects, clients, suppliers
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={LBL}>Categoría</label>
               <select value={category} onChange={e => setCategory(e.target.value)} className={SEL}>
@@ -389,8 +389,8 @@ export function Tickets() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <Ticket className="w-8 h-8 text-brand" /> Mesa de Servicio
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <Ticket className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Mesa de Servicio
           </h1>
           <p className="text-gray-400 mt-1.5">
             Tablero Kanban interactivo ·{' '}
@@ -398,7 +398,7 @@ export function Tickets() {
           </p>
         </div>
         <Button onClick={() => setShowModal(true)}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0">
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Nuevo Ticket
         </Button>
       </div>

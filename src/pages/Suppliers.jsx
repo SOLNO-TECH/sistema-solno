@@ -61,15 +61,15 @@ export function Suppliers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <Briefcase className="w-8 h-8 text-brand" /> Proveedores
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <Briefcase className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Proveedores
           </h1>
-          <p className="text-gray-400 mt-2">Directorio de empresas y socios comerciales estratégicos.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Directorio de empresas y socios comerciales estratégicos.</p>
         </div>
         <Button onClick={() => { resetForm(); setPanelOpen(true); }}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0">
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Nuevo Proveedor
         </Button>
       </div>
@@ -96,8 +96,8 @@ export function Suppliers() {
               <AnimatePresence>
                 {suppliers.map(sup => (
                   <motion.div key={sup.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-white/2 group">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                    className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-sm font-bold text-white shrink-0">
                         {sup.name.charAt(0).toUpperCase()}
                       </div>
@@ -113,7 +113,7 @@ export function Suppliers() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0 ml-4">
+                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 sm:ml-4 flex-wrap">
                       <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md border ${TYPE_COLORS[sup.type] || TYPE_COLORS['Otro']}`}>{sup.type}</span>
                       {confirmDelete === sup.id ? (
                         <div className="flex items-center gap-1">
@@ -122,7 +122,7 @@ export function Suppliers() {
                         </div>
                       ) : (
                         <Button variant="ghost" onClick={() => setConfDel(sup.id)}
-                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                          className="text-white/15 hover:text-danger hover:bg-danger/10 p-2 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}

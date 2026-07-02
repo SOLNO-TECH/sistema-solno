@@ -94,15 +94,15 @@ export function HR() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <Users className="w-8 h-8 text-brand" /> Recursos Humanos
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <Users className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Recursos Humanos
           </h1>
-          <p className="text-gray-400 mt-2">Gestión de personal, expedientes, faltas y bonos de puntualidad.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Gestión de personal, expedientes, faltas y bonos de puntualidad.</p>
         </div>
         <Button onClick={() => { resetForm(); setPanelOpen(true); }}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0">
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Nuevo Empleado
         </Button>
       </div>
@@ -151,7 +151,7 @@ export function HR() {
                           </div>
                         ) : (
                           <Button variant="ghost" onClick={() => setConfDel(emp.id)}
-                            className="text-white/15 hover:text-danger hover:bg-danger/10 p-1.5 h-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                            className="text-white/15 hover:text-danger hover:bg-danger/10 p-1.5 h-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         )}

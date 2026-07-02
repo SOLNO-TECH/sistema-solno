@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground antialiased selection:bg-brand selection:text-black font-sans;
+    @apply bg-background text-foreground antialiased selection:bg-brand selection:text-black font-sans overflow-x-hidden;
     color-scheme: dark;
   }
 }
@@ -40,6 +40,32 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile document preview — scale 800px PDF layout to fit screen */
+.doc-preview-viewport {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.doc-preview-scale {
+  transform-origin: top center;
+}
+
+@media (max-width: 839px) {
+  .doc-preview-scale {
+    transform: scale(calc((100vw - 2rem) / 800));
+    margin-bottom: calc(1035px * ((100vw - 2rem) / 800 - 1));
+  }
+}
+
+@media print {
+  .doc-preview-scale {
+    transform: none !important;
+    margin-bottom: 0 !important;
+  }
 }
 
 /* Print Styles for PDF Generation */

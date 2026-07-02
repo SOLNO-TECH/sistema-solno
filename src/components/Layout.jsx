@@ -42,7 +42,7 @@ export function Layout() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState({
     displayName: 'Administrador',
-    email: 'admin@solno.mx',
+    email: 'admin@gruposolno.com',
     avatar: null
   });
   const profileMenuRef = useRef(null);
@@ -55,7 +55,7 @@ export function Layout() {
       if (cu) {
         setCurrentUser({
           displayName: cu.displayName || cu.username || 'Administrador',
-          email: cu.email || 'admin@solno.mx',
+          email: cu.email || 'admin@gruposolno.com',
           avatar: cu.avatar || null
         });
       }
@@ -182,7 +182,7 @@ export function Layout() {
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between h-20 px-4 glass border-b border-white/5 lg:px-8 z-30"
+          className="flex items-center justify-between h-16 sm:h-20 px-4 glass border-b border-white/5 lg:px-8 z-30 shrink-0"
         >
           <button className="lg:hidden text-white hover:bg-white/10 p-2 rounded-xl transition-colors" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
@@ -246,12 +246,12 @@ export function Layout() {
           </div>
         </motion.header>
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 relative z-20">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 relative z-20">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto max-w-7xl"
+            className="mx-auto max-w-7xl w-full min-w-0"
           >
             <Outlet />
           </motion.div>

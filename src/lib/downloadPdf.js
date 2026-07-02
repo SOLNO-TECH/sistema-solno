@@ -153,15 +153,7 @@ function triggerDownload(blob, filename) {
   document.body.appendChild(link);
   link.click();
   link.remove();
-
-  setTimeout(() => {
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      /* ignore */
-    }
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  }, 300);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 /**

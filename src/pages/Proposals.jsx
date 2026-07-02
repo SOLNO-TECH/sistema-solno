@@ -151,7 +151,7 @@ export function Proposals() {
         onClick={() => setViewProposal(null)}
       >
         <div
-          className="min-h-screen py-10 print:py-0 px-4 w-full overflow-x-auto pb-32"
+          className="min-h-screen py-6 sm:py-10 print:py-0 px-2 sm:px-4 w-full pb-32 doc-preview-viewport"
           onClick={e => e.stopPropagation()}
         >
           {/* Action Bar */}
@@ -192,6 +192,7 @@ export function Proposals() {
           </div>
 
           {/* ── Paper Document ──────────────────────────────────────────────── */}
+          <div className="doc-preview-scale">
           <div
             id="proposal-document"
             className="bg-white text-black min-w-[800px] w-[800px] shadow-2xl print:shadow-none p-8 md:p-10 relative font-sans mx-auto"
@@ -322,6 +323,7 @@ export function Proposals() {
               </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
     );
@@ -330,16 +332,16 @@ export function Proposals() {
   // ── LIST VIEW ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 relative">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <ClipboardList className="w-8 h-8 text-brand" /> Propuestas
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 sm:gap-3">
+            <ClipboardList className="w-7 h-7 sm:w-8 sm:h-8 text-brand shrink-0" /> Propuestas
           </h1>
-          <p className="text-gray-400 mt-2">Crea propuestas comerciales con fases, entregables y plazos de entrega.</p>
+          <p className="text-gray-400 mt-1.5 sm:mt-2 text-sm sm:text-base">Crea propuestas comerciales con fases, entregables y plazos de entrega.</p>
         </div>
         <Button
           onClick={() => { resetForm(); setPanelOpen(true); }}
-          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0"
+          className="bg-brand text-black hover:bg-brand/90 hover:shadow-glow font-bold shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" /> Nueva Propuesta
         </Button>
@@ -347,9 +349,9 @@ export function Proposals() {
 
       <Card className="glass border-white/5">
         <CardHeader className="border-b border-white/5 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-white font-bold">Historial de Propuestas</CardTitle>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-brand" />
                 <span className="text-sm font-bold text-brand">
@@ -383,7 +385,7 @@ export function Proposals() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 hover:bg-white/2 group gap-4"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-4"
                     >
                       <div
                         className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
@@ -473,7 +475,7 @@ export function Proposals() {
       >
         <form onSubmit={handleAdd} className="space-y-6 pb-6">
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={LABEL}>Vincular a Cliente</label>
               <select value={clientId} onChange={e => setClientId(e.target.value)} className={SEL}>
@@ -558,7 +560,7 @@ export function Proposals() {
                     placeholder="Entregables (uno por línea)"
                     className="flex w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-brand resize-none min-h-[56px]"
                   />
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Plazo (fecha límite)</label>
                       <Input
