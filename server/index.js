@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,8 +12,13 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Initialize SQLite Database
-const db = new Database('solno.db');
+// SQLite en carpeta persistente (montar volumen en /app/data en Dokploy)
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+fs.mkdirSync(dataDir, { recursive: true });
+const dbPath = path.join(dataDir, 'solno.db');
+
+const db = new Database(dbPath);
+console.log(`SQLite database: ${dbPath}`);
 
 // Create the key-value store table
 db.exec(`

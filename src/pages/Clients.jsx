@@ -28,17 +28,30 @@ export function Clients() {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!firstName || !lastName) return;
+    if (!firstName?.trim() || !lastName?.trim()) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 380));
-    const updated = [...clients, { id: Date.now(), firstName, lastName, company, phone, email }];
-    setClients(updated);
-    await setStorageData('solno_clients', updated);
-    window.dispatchEvent(new Event('solno_data_updated'));
-    setLoading(false);
-    resetForm();
-    setPanelOpen(false);
-    toast.success('Cliente registrado', { description: `${firstName} ${lastName} fue añadido al directorio.` });
+    try {
+      await new Promise(r => setTimeout(r, 380));
+      const updated = [...clients, {
+        id: Date.now(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        company: company.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      }];
+      setClients(updated);
+      await setStorageData('solno_clients', updated);
+      window.dispatchEvent(new Event('solno_data_updated'));
+      resetForm();
+      setPanelOpen(false);
+      toast.success('Cliente registrado', { description: `${firstName.trim()} ${lastName.trim()} fue añadido al directorio.` });
+    } catch (err) {
+      console.error(err);
+      toast.error('No se pudo guardar', { description: 'Intenta de nuevo.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -90,7 +103,7 @@ export function Clients() {
                     className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-white/2 group gap-3 sm:gap-4">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400 shrink-0">
-                        {client.firstName.charAt(0).toUpperCase()}
+                        {(client.firstName?.[0] || client.lastName?.[0] || '?').toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-white truncate">{client.firstName} {client.lastName}</p>

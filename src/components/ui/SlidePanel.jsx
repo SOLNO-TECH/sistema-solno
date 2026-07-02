@@ -1,35 +1,46 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /**
- * SlidePanel – Premium right-side drawer for all registration forms.
- * Full-screen on mobile, side drawer on sm+.
+ * SlidePanel – drawer de formularios. Portal en body para evitar overlays atrapados.
  */
 export function SlidePanel({ open, onClose, title, subtitle, icon: Icon, accentColor = 'text-brand', children }) {
-  return (
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
+  return createPortal(
     <AnimatePresence>
       {open && (
-        <>
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+        <motion.div
+          key="slide-panel-root"
+          className="fixed inset-0 z-[200] fm-no-transition"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
+            aria-hidden="true"
           />
 
           <motion.div
-            key="panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 38 }}
             className={cn(
-              'fixed z-50 flex flex-col overflow-hidden',
+              'fm-no-transition absolute flex flex-col overflow-hidden',
               'inset-0 sm:inset-auto sm:right-0 sm:top-16 lg:top-20',
               'w-full sm:max-w-md',
               'h-full sm:h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)]',
@@ -42,6 +53,7 @@ export function SlidePanel({ open, onClose, title, subtitle, icon: Icon, accentC
               borderBottom: '1px solid rgba(255,255,255,0.08)',
               boxShadow: '-20px 0 60px rgba(0,0,0,0.8)',
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div
               className="shrink-0 relative overflow-hidden"
@@ -78,21 +90,9 @@ export function SlidePanel({ open, onClose, title, subtitle, icon: Icon, accentC
                 </div>
 
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.4)',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                    e.currentTarget.style.color = '#fff';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.4)';
-                  }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 bg-white/[0.04] border border-white/[0.08] text-white/40 hover:bg-white/[0.08] hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -108,8 +108,9 @@ export function SlidePanel({ open, onClose, title, subtitle, icon: Icon, accentC
               {children}
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

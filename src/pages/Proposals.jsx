@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -141,195 +142,8 @@ export function Proposals() {
   };
 
   const totalSum = proposals.reduce((acc, p) => acc + (p.total || 0), 0);
+  const previewClient = viewProposal ? clients.find(c => c.id === viewProposal.clientId) : null;
 
-  // ── PDF PREVIEW ──────────────────────────────────────────────────────────────
-  if (viewProposal) {
-    const linkedClient = clients.find(c => c.id === viewProposal.clientId);
-    return (
-      <div
-        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex justify-center overflow-y-auto print:bg-white print:static print:block"
-        onClick={() => setViewProposal(null)}
-      >
-        <div
-          className="min-h-screen py-6 sm:py-10 print:py-0 px-2 sm:px-4 w-full pb-32 doc-preview-viewport"
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Action Bar */}
-          <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-3 no-print z-[200] px-4 pointer-events-none">
-            <div className="flex gap-2 sm:gap-3 pointer-events-auto bg-black/80 backdrop-blur-xl p-2 sm:p-3 rounded-2xl border border-white/10 shadow-2xl">
-              <Button
-                onClick={() => {
-                  const element = document.getElementById('proposal-document');
-                  if (element) {
-                    toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
-                    html2pdf().set({
-                      margin: 0.2,
-                      filename: `${viewProposal.folio}.pdf`,
-                      image: { type: 'jpeg', quality: 0.98 },
-                      html2canvas: { scale: 2, useCORS: true, logging: true },
-                      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    }).from(element).save().then(() => toast.success('Descargado correctamente'));
-                  }
-                }}
-                className="bg-brand text-black font-bold hover:shadow-glow shadow-lg px-4 sm:px-6"
-              >
-                <Download className="w-4 h-4 mr-2" /> Descargar PDF
-              </Button>
-              <Button
-                onClick={() => window.print()}
-                className="bg-white/10 text-white font-bold hover:bg-white/20 shadow-lg border border-white/10 hidden sm:flex px-6"
-              >
-                <Printer className="w-4 h-4 mr-2" /> Imprimir
-              </Button>
-              <Button
-                onClick={() => setViewProposal(null)}
-                variant="outline"
-                className="bg-transparent border-transparent text-gray-400 hover:text-white hover:bg-white/10 shadow-none px-3"
-              >
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          </div>
-
-          {/* ── Paper Document ──────────────────────────────────────────────── */}
-          <div className="doc-preview-scale">
-          <div
-            id="proposal-document"
-            className="bg-white text-black min-w-[800px] w-[800px] shadow-2xl print:shadow-none p-8 md:p-10 relative font-sans mx-auto"
-            style={{ minHeight: '1035px' }}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-start mb-6 border-b-2 border-black/10 pb-6">
-              <div>
-                <div className="mb-2">
-                  <img
-                    src="/FONDO%20OSCURO.png"
-                    alt="Solno Logo"
-                    className="h-[80px] w-auto object-contain"
-                    crossOrigin="anonymous"
-                    style={{ height: '80px', objectFit: 'contain' }}
-                  />
-                </div>
-                <div className="text-sm text-gray-600 leading-relaxed max-w-xs">
-                  <p>Calle 20 de Noviembre #7 Int. B,</p>
-                  <p>Manzana 48, Lote 7B, C.P. 63737,</p>
-                  <p>Mezcales, Bahía de Banderas, Nayarit, México.</p>
-                  <p className="mt-2 font-medium">Tel: 329 296 5460 - 322 215 3935</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <h2 className="text-4xl font-black text-black tracking-tighter uppercase">Esquema</h2>
-                <p className="text-lg font-medium text-gray-500 mt-1">{viewProposal.folio}</p>
-                <div className="mt-6 border border-gray-300 rounded-lg p-3 text-left block w-max ml-auto bg-white">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Fecha de Expedición</p>
-                  <p className="font-bold text-black">
-                    {new Date(viewProposal.date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Client + Project Info */}
-            <div className="mb-6 grid grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-200 pb-1">Propuesto A</h3>
-                {linkedClient ? (
-                  <div>
-                    <p className="font-bold text-lg">{linkedClient.firstName} {linkedClient.lastName}</p>
-                    <p className="text-gray-600">{linkedClient.company || 'Particular'}</p>
-                    <p className="text-sm text-gray-500 mt-1">{linkedClient.email}</p>
-                    {linkedClient.phone && <p className="text-sm text-gray-500">{linkedClient.phone}</p>}
-                  </div>
-                ) : (
-                  <p className="font-medium text-gray-500">Cliente General</p>
-                )}
-              </div>
-              <div>
-                <h3 className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-200 pb-1">Proyecto</h3>
-                <p className="font-bold text-lg text-[#8ca800]">{viewProposal.projectName}</p>
-                {viewProposal.projectDesc && (
-                  <p className="text-sm text-gray-500 mt-1 leading-relaxed">{viewProposal.projectDesc}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Phases Table */}
-            <table className="w-full mb-6 text-sm table-fixed">
-              <thead>
-                <tr className="bg-black text-white">
-                  <th className="py-2.5 px-3 font-bold rounded-tl-lg text-left" style={{ width: '28%' }}>
-                    <div style={{ display: 'block' }}>Fase / Etapa</div>
-                  </th>
-                  <th className="py-2.5 px-3 font-bold text-left" style={{ width: '38%' }}>
-                    <div style={{ display: 'block' }}>Entregables</div>
-                  </th>
-                  <th className="py-2.5 px-3 font-bold text-center" style={{ width: '18%' }}>
-                    <div style={{ display: 'block', textAlign: 'center' }}>Plazo</div>
-                  </th>
-                  <th className="py-2.5 px-3 font-bold text-right rounded-tr-lg" style={{ width: '16%' }}>
-                    <div style={{ display: 'block', textAlign: 'right' }}>Pago</div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {viewProposal.phases.map((phase, idx) => (
-                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
-                    <td className="py-3 px-3 align-top">
-                      <span className="font-black" style={{ color: '#8ca800' }}>{String(idx + 1).padStart(2, '0')}.</span>{' '}
-                      <span className="font-bold text-gray-900">{phase.name}</span>
-                    </td>
-                    <td className="py-3 px-3 text-gray-600 align-top text-xs leading-relaxed whitespace-pre-line">
-                      {phase.deliverables || '—'}
-                    </td>
-                    <td className="py-3 px-3 align-top" style={{ textAlign: 'center' }}>
-                      {phase.deadline ? (
-                        <span
-                          className="text-xs font-medium text-gray-700 rounded-full px-2 py-0.5"
-                          style={{ backgroundColor: '#f3f4f6', display: 'inline-block' }}
-                        >
-                          {new Date(phase.deadline + 'T12:00:00').toLocaleDateString('es-MX', {
-                            day: 'numeric', month: 'short', year: 'numeric'
-                          })}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 font-bold text-gray-900 align-top" style={{ textAlign: 'right' }}>
-                      ${phase.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Total */}
-            <div className="flex justify-end mb-6">
-              <div className="w-72">
-                <div className="flex justify-between text-xl font-black pt-3 border-t-2 border-black">
-                  <span>Total del Proyecto</span>
-                  <span style={{ color: '#8ca800' }}>
-                    ${viewProposal.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Terms */}
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 mt-auto">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-black mb-3">Condiciones Generales</h4>
-              <div className="text-xs text-gray-600 whitespace-pre-line leading-relaxed">
-                {viewProposal.terms || DEFAULT_TERMS}
-              </div>
-            </div>
-          </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── LIST VIEW ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 relative">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8">
@@ -628,6 +442,179 @@ export function Proposals() {
           </div>
         </form>
       </SlidePanel>
+
+      {viewProposal && createPortal(
+        <AnimatePresence>
+          <motion.div
+            key="proposal-preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] flex flex-col bg-black/85 backdrop-blur-sm print:bg-white print:static print:block fm-no-transition"
+          >
+            <div className="no-print shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-[#0a0a0a]">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">Vista previa — {viewProposal.folio}</p>
+                <p className="text-xs text-gray-500">Descarga el PDF o cierra para volver al listado</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    const element = document.getElementById('proposal-document');
+                    if (element) {
+                      toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
+                      html2pdf().set({
+                        margin: 0.2,
+                        filename: `${viewProposal.folio}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true },
+                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                      }).from(element).save().then(() => toast.success('Descargado correctamente'));
+                    }
+                  }}
+                  className="bg-brand text-black font-bold hover:shadow-glow flex-1 sm:flex-none"
+                >
+                  <Download className="w-4 h-4 mr-2" /> Descargar PDF
+                </Button>
+                <Button onClick={() => window.print()} className="bg-white/10 text-white border border-white/10 hidden sm:inline-flex">
+                  <Printer className="w-4 h-4 mr-2" /> Imprimir
+                </Button>
+                <Button onClick={() => setViewProposal(null)} variant="ghost" className="text-gray-300 hover:text-white border border-white/10 shrink-0">
+                  <X className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Cerrar</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-auto py-4 sm:py-8 px-2 sm:px-4 print:py-0 doc-preview-viewport">
+              <div className="doc-preview-scale">
+                <div
+                  id="proposal-document"
+                  className="bg-white text-black min-w-[800px] w-[800px] shadow-2xl print:shadow-none p-8 md:p-10 relative font-sans mx-auto"
+                  style={{ minHeight: '1035px' }}
+                >
+                  <div className="flex justify-between items-start mb-6 border-b-2 border-black/10 pb-6">
+                    <div>
+                      <div className="mb-2">
+                        <img src="/FONDO%20OSCURO.png" alt="Solno Logo" className="h-[80px] w-auto object-contain" crossOrigin="anonymous" />
+                      </div>
+                      <div className="text-sm text-gray-600 leading-relaxed max-w-xs">
+                        <p>Calle 20 de Noviembre #7 Int. B,</p>
+                        <p>Manzana 48, Lote 7B, C.P. 63737,</p>
+                        <p>Mezcales, Bahía de Banderas, Nayarit, México.</p>
+                        <p className="mt-2 font-medium">Tel: 329 296 5460 - 322 215 3935</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <h2 className="text-4xl font-black text-black tracking-tighter uppercase">Esquema</h2>
+                      <p className="text-lg font-medium text-gray-500 mt-1">{viewProposal.folio}</p>
+                      <div className="mt-6 border border-gray-300 rounded-lg p-3 text-left block w-max ml-auto bg-white">
+                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Fecha de Expedición</p>
+                        <p className="font-bold text-black">
+                          {new Date(viewProposal.date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6 grid grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-200 pb-1">Propuesto A</h3>
+                      {previewClient ? (
+                        <div>
+                          <p className="font-bold text-lg">{previewClient.firstName} {previewClient.lastName}</p>
+                          <p className="text-gray-600">{previewClient.company || 'Particular'}</p>
+                          <p className="text-sm text-gray-500 mt-1">{previewClient.email}</p>
+                          {previewClient.phone && <p className="text-sm text-gray-500">{previewClient.phone}</p>}
+                        </div>
+                      ) : (
+                        <p className="font-medium text-gray-500">Cliente General</p>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-200 pb-1">Proyecto</h3>
+                      <p className="font-bold text-lg text-[#8ca800]">{viewProposal.projectName}</p>
+                      {viewProposal.projectDesc && (
+                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{viewProposal.projectDesc}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <table className="w-full mb-6 text-sm table-fixed">
+                    <thead>
+                      <tr className="bg-black text-white">
+                        <th className="py-2.5 px-3 font-bold rounded-tl-lg text-left" style={{ width: '28%' }}>Fase / Etapa</th>
+                        <th className="py-2.5 px-3 font-bold text-left" style={{ width: '38%' }}>Entregables</th>
+                        <th className="py-2.5 px-3 font-bold text-center" style={{ width: '18%' }}>Plazo</th>
+                        <th className="py-2.5 px-3 font-bold text-right rounded-tr-lg" style={{ width: '16%' }}>Pago</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {viewProposal.phases.map((phase, idx) => (
+                        <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                          <td className="py-3 px-3 align-top">
+                            <span className="font-black" style={{ color: '#8ca800' }}>{String(idx + 1).padStart(2, '0')}.</span>{' '}
+                            <span className="font-bold text-gray-900">{phase.name}</span>
+                          </td>
+                          <td className="py-3 px-3 text-gray-600 align-top text-xs leading-relaxed whitespace-pre-line">{phase.deliverables || '—'}</td>
+                          <td className="py-3 px-3 align-top text-center">
+                            {phase.deadline ? (
+                              <span className="text-xs font-medium text-gray-700 rounded-full px-2 py-0.5 bg-gray-100 inline-block">
+                                {new Date(phase.deadline + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            ) : '—'}
+                          </td>
+                          <td className="py-3 px-3 font-bold text-gray-900 align-top text-right">
+                            ${phase.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="flex justify-end mb-6">
+                    <div className="w-72">
+                      <div className="flex justify-between text-xl font-black pt-3 border-t-2 border-black">
+                        <span>Total del Proyecto</span>
+                        <span style={{ color: '#8ca800' }}>${viewProposal.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-black mb-3">Condiciones Generales</h4>
+                    <div className="text-xs text-gray-600 whitespace-pre-line leading-relaxed">{viewProposal.terms || DEFAULT_TERMS}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="no-print shrink-0 sm:hidden flex gap-2 p-3 border-t border-white/10 bg-[#0a0a0a]">
+              <Button
+                onClick={() => {
+                  const element = document.getElementById('proposal-document');
+                  if (element) {
+                    toast('Generando PDF...', { description: 'Por favor espera unos segundos.' });
+                    html2pdf().set({
+                      margin: 0.2,
+                      filename: `${viewProposal.folio}.pdf`,
+                      image: { type: 'jpeg', quality: 0.98 },
+                      html2canvas: { scale: 2, useCORS: true },
+                      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    }).from(element).save().then(() => toast.success('Descargado correctamente'));
+                  }
+                }}
+                className="flex-1 bg-brand text-black font-bold"
+              >
+                <Download className="w-4 h-4 mr-2" /> Descargar PDF
+              </Button>
+              <Button onClick={() => setViewProposal(null)} variant="ghost" className="border border-white/10 text-white">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
