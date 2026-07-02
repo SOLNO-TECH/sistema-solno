@@ -67,6 +67,10 @@
 }
 
 @media print {
+  .preview-action-bar {
+    display: none !important;
+  }
+
   .doc-preview-scale {
     transform: none !important;
     margin-bottom: 0 !important;
