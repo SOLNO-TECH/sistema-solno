@@ -116,7 +116,7 @@ export function Quotes() {
     setClientId('');
     setProjectType('Web');
     setStatus('Pendiente');
-    setItems([{ id: Date.now(), qty: 1, desc: '', price: '' }]);
+    setItems([{ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, qty: 1, desc: '', price: '' }]);
     setTerms(DEFAULT_TERMS);
     setFolio('');
   };
@@ -132,7 +132,7 @@ export function Quotes() {
     setClientId(quote.clientId ? String(quote.clientId) : '');
     setProjectType(quote.projectType || 'Web');
     setStatus(quote.status || 'Pendiente');
-    setItems(quote.items?.length ? quote.items.map(i => ({ ...i, id: i.id || Date.now() + Math.random() })) : [{ id: Date.now(), qty: 1, desc: '', price: '' }]);
+    setItems(quote.items?.length ? quote.items.map((i, index) => ({ ...i, id: `${i.id || 'item'}-${index}-${Math.random().toString(36).slice(2, 6)}` })) : [{ id: `${Date.now()}-a`, qty: 1, desc: '', price: '' }]);
     setTerms(quote.terms || DEFAULT_TERMS);
     setFolio(quote.folio || generateFolio(quotes));
     setPanelOpen(true);
@@ -153,7 +153,7 @@ export function Quotes() {
   };
 
   const handleAddItem = () => {
-    setItems([...items, { id: Date.now(), qty: 1, desc: '', price: '' }]);
+    setItems([...items, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, qty: 1, desc: '', price: '' }]);
   };
 
   const handleRemoveItem = (id) => {

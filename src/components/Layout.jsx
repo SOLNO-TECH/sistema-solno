@@ -16,7 +16,8 @@ import {
   ChevronDown,
   FolderGit2,
   Ticket,
-  ClipboardList
+  ClipboardList,
+  FileSignature
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Button } from './ui/Button';
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Cotizaciones', href: '/cotizaciones', icon: FileText },
   { name: 'Propuestas', href: '/propuestas', icon: ClipboardList },
+  { name: 'Contratos', href: '/contratos', icon: FileSignature },
   { name: 'Gastos', href: '/gastos', icon: CreditCard },
   { name: 'Proveedores', href: '/proveedores', icon: Briefcase },
   { name: 'Proyectos', href: '/proyectos', icon: FolderGit2 },

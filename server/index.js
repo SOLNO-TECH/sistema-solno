@@ -74,15 +74,32 @@ app.delete('/api/store/:key', (req, res) => {
   }
 });
 
-// Serve static frontend files from 'dist' directory
+// Serve static frontend files from 'dist' directory (production)
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Catch-all route to serve the React index.html for client-side routing
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+// Catch-all for client-side routing — never swallow /api
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return next();
+  }
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  if (!fs.existsSync(indexPath)) {
+    return res.status(404).send('Frontend build not found. Run npm run build.');
+  }
+  res.sendFile(indexPath);
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, '0.0.0.0', () => {
+const PORT = Number(process.env.PORT) || 3002;
+const server = app.listen({ port: PORT, host: '0.0.0.0', exclusive: true }, () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
+});
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} already in use. Stop the other process and retry.`);
+    process.exit(1);
+  }
+  throw err;
 });

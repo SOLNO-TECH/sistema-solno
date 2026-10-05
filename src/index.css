@@ -59,6 +59,17 @@
   transform-origin: top center;
 }
 
+#quote-document .quote-items-table th,
+#quote-document .quote-items-table td {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+#contract-document .contract-formal-body {
+  text-align: justify;
+  hyphens: auto;
+}
+
 @media (max-width: 839px) {
   .doc-preview-scale {
     transform: scale(calc((100vw - 2rem) / 800));

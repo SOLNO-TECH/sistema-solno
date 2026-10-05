@@ -156,10 +156,62 @@ function triggerDownload(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+async function capturePageToCanvas(pageEl) {
+  const width = pageEl.offsetWidth || 800;
+  const height = pageEl.offsetHeight || 1035;
+
+  return html2canvas(pageEl, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width,
+    height,
+    windowWidth: width,
+    windowHeight: height,
+    scrollX: 0,
+    scrollY: 0,
+    onclone: (clonedDoc, clonedElement) => {
+      prepareCloneForCanvas(clonedDoc, pageEl, clonedElement);
+    },
+  });
+}
+
+async function downloadMultiPagePdf(pages, filename) {
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  for (let i = 0; i < pages.length; i++) {
+    const pageEl = pages[i];
+    const restoreImages = await embedImages(pageEl);
+    await new Promise((r) => setTimeout(r, 300));
+
+    try {
+      const canvas = await capturePageToCanvas(pageEl);
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+    } finally {
+      restoreImages();
+    }
+  }
+
+  triggerDownload(pdf.output('blob'), filename);
+  return true;
+}
+
 /**
  * Captura un elemento HTML y lo descarga como PDF (carta).
+ * Si contiene `.contract-page`, genera un PDF de varias hojas.
  */
 export async function downloadPdfFromElement(element, filename) {
+  const pages = element.querySelectorAll('.contract-page');
+  if (pages.length > 1) {
+    return downloadMultiPagePdf([...pages], filename);
+  }
+
   const restoreImages = await embedImages(element);
   await new Promise((r) => setTimeout(r, 400));
 
@@ -212,4 +264,9 @@ export async function downloadPdfFromElement(element, filename) {
 export function getQuotePdfFilename(folio) {
   const safeFolio = (folio || 'SIN-FOLIO').replace(/[^\w-]/g, '');
   return `Grupo-Solno-Cotizacion-${safeFolio}.pdf`;
+}
+
+export function getContractPdfFilename(folio) {
+  const safeFolio = (folio || 'SIN-FOLIO').replace(/[^\w-]/g, '');
+  return `Grupo-Solno-Contrato-${safeFolio}.pdf`;
 }

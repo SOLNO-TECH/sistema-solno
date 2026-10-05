@@ -5,7 +5,7 @@ export function ProposalPreviewView({ proposal, client, defaultTerms, onDownload
   return (
     <>
       <PreviewActionBar
-        title={`Vista previa — ${proposal.folio}`}
+        title={proposal.folio}
         onDownload={onDownload}
         onClose={onClose}
       />
@@ -111,7 +111,6 @@ export function ProposalPreviewView({ proposal, client, defaultTerms, onDownload
           </div>
         </div>
       </div>
-      <PreviewActionBar onDownload={onDownload} onClose={onClose} />
     </>
   );
 }

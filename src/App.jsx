@@ -16,6 +16,7 @@ import { Profile } from './pages/Profile';
 import { Projects } from './pages/Projects';
 import { Tickets } from './pages/Tickets';
 import { Proposals } from './pages/Proposals';
+import { Contracts } from './pages/Contracts';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('solno_auth') === 'true';
@@ -56,6 +57,7 @@ function App() {
           <Route path="clientes" element={<Clients />} />
           <Route path="cotizaciones" element={<Quotes />} />
           <Route path="propuestas" element={<Proposals />} />
+          <Route path="contratos" element={<Contracts />} />
           <Route path="gastos" element={<Expenses />} />
           <Route path="proveedores" element={<Suppliers />} />
           <Route path="proyectos" element={<Projects />} />
